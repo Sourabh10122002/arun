@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     try {
         const data = await resend.emails.send({
             from: 'Portfolio Contact Form <onboarding@resend.dev>', // Update this if user has a verified domain
-            to: ['arunrawatcine@gmail.com'], // Sending to the portfolio owner
+            to: ['arunrawatarena@gmail.com'], // Sending to the portfolio owner
             reply_to: email, // Reply to the person who filled the form
             subject: `New Contact Form Submission: ${subject || 'No Subject'}`,
             html: `
