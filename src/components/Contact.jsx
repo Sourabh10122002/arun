@@ -36,6 +36,11 @@ const Contact = () => {
                 body: JSON.stringify(formData),
             });
 
+            // Handle 404 (API not found in local npm run dev)
+            if (response.status === 404) {
+                throw new Error("API endpoint not found. Are you running 'vercel dev'?");
+            }
+
             const data = await response.json();
 
             if (response.ok) {
