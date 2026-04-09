@@ -7,7 +7,17 @@ const Hero = () => {
 
     useEffect(() => {
         if (videoRef.current) {
-            videoRef.current.play().catch(() => { });
+            // Explicitly set muted and defaultMuted to ensure autoplay on iOS
+            videoRef.current.defaultMuted = true;
+            videoRef.current.muted = true;
+            
+            // Wait for a small delay or just try to play
+            const playPromise = videoRef.current.play();
+            if (playPromise !== undefined) {
+                playPromise.catch((error) => {
+                    console.log("Autoplay was prevented:", error);
+                });
+            }
         }
     }, []);
 
@@ -30,6 +40,7 @@ const Hero = () => {
                     loop
                     playsInline
                     autoPlay
+                    preload="auto"
                 />
                 {/* Gradient Overlays */}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/50 to-transparent" />
