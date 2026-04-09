@@ -6,19 +6,30 @@ const Hero = () => {
     const videoRef = useRef(null);
 
     useEffect(() => {
-        if (videoRef.current) {
-            // Explicitly set muted and defaultMuted to ensure autoplay on iOS
-            videoRef.current.defaultMuted = true;
-            videoRef.current.muted = true;
-            
-            // Wait for a small delay or just try to play
-            const playPromise = videoRef.current.play();
-            if (playPromise !== undefined) {
-                playPromise.catch((error) => {
-                    console.log("Autoplay was prevented:", error);
-                });
+        const video = videoRef.current;
+        if (!video) return;
+
+        // React's muted prop doesn't set the DOM attribute on iOS — do it manually
+        video.muted = true;
+        video.defaultMuted = true;
+        video.setAttribute('muted', '');
+
+        const tryPlay = () => {
+            const promise = video.play();
+            if (promise !== undefined) {
+                promise.catch(() => {});
             }
+        };
+
+        if (video.readyState >= 2) {
+            tryPlay();
+        } else {
+            video.addEventListener('loadeddata', tryPlay, { once: true });
         }
+
+        return () => {
+            video.removeEventListener('loadeddata', tryPlay);
+        };
     }, []);
 
     const scrollToProjects = () => {
@@ -40,7 +51,7 @@ const Hero = () => {
                     loop
                     playsInline
                     autoPlay
-                    preload="auto"
+                    preload="metadata"
                 />
                 {/* Gradient Overlays */}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/50 to-transparent" />
