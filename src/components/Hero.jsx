@@ -1,35 +1,21 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback } from 'react';
 import { ChevronDown, Play } from 'lucide-react';
 import { profileData, projectsData } from '../data/mock';
 
 const Hero = () => {
-    const videoRef = useRef(null);
-
-    useEffect(() => {
-        const video = videoRef.current;
-        if (!video) return;
-
-        // React's muted prop doesn't set the DOM attribute on iOS — do it manually
-        video.muted = true;
-        video.defaultMuted = true;
-        video.setAttribute('muted', '');
-
-        const tryPlay = () => {
-            const promise = video.play();
-            if (promise !== undefined) {
-                promise.catch(() => {});
-            }
-        };
-
-        if (video.readyState >= 2) {
-            tryPlay();
-        } else {
-            video.addEventListener('loadeddata', tryPlay, { once: true });
-        }
-
-        return () => {
-            video.removeEventListener('loadeddata', tryPlay);
-        };
+    // Callback ref fires synchronously when the DOM node is created,
+    // before the browser starts loading — this is the only reliable way
+    // to set the muted attribute on iOS Safari via React.
+    const videoCallback = useCallback((node) => {
+        if (!node) return;
+        node.muted = true;
+        node.defaultMuted = true;
+        node.setAttribute('muted', '');
+        node.load();
+        const tryPlay = () => node.play().catch(() => {});
+        node.addEventListener('loadedmetadata', tryPlay, { once: true });
+        // Also try immediately in case metadata is already loaded
+        if (node.readyState >= 1) tryPlay();
     }, []);
 
     const scrollToProjects = () => {
@@ -44,13 +30,11 @@ const Hero = () => {
             {/* Video Background */}
             <div className="absolute inset-0">
                 <video
-                    ref={videoRef}
+                    ref={videoCallback}
                     className="w-full h-full object-cover opacity-40"
                     src={projectsData[0]?.videoUrl}
-                    muted
                     loop
                     playsInline
-                    autoPlay
                     preload="metadata"
                 />
                 {/* Gradient Overlays */}
